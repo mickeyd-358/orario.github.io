@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% block title %} Dashboard {% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <header class="dashboard-header">
+        <h1>Welcome, {{ name }}!</h1>
+        <div id="error-message" class="error"></div>
+        <div id="success-message" class="success"></div>
+    </header>
+    <main class="widget-container">
+        <div class="side-panel-column">
+            <section class="widget clock-widget">
+                <time id="current-time"></time>
+                <div id="time-options">
+                    <input type="radio" id="24-hr" name="time-setting">
+                    <label for="24-hr">24-hour time</label><br>
+                    <input type="radio" id="12-hr" name="time-setting" checked>
+                    <label for="12-hr">12-hour time</label>
+                </div>
+                <script src="../static/js/display_time.js"></script>
+            </section>
+
+            <div class="widget side-panel quote">
+                <h1>Inspirational Quote</h1>
+                <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}"/>
+                <br><br>
+                <span id="editable-quote" contenteditable="False">{{ user_quote or "The harder I work, the luckier I get" }}</span>
+                <button id="name-edit" hidden="True">✍️ Click to edit quote</button>
+                <div id="save-msg" class="success" style="color: #1b1f48; font-size: 0.8rem; margin-top: 5px; opacity: 0; transition: 0.3s;">Saved!</div>
+            </div>
+        </div>
+
+        <section class="widget card">
+            <div class="card-header">
+                <a href="{{ url_for('dashboard', year=prev_year, month=prev_month) }}" class="button">《</a>
+                <span class="month-year-title">{{month_name}} {{year}}</span>
+                <a href="{{ url_for('dashboard', year=next_year, month=next_month) }}" class="button">》</a>
+            </div>
+            <table class="bordered-table">
+                <thead>
+                    <tr>
+                        {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+                            <th>{{ day }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in calendar %}
+                    <tr>
+                    
+                        {% for day in week %}
+                    
+                        <td
+                            class="{% if day == today and month == current_month and year == current_year %}current-day{% endif %}"
+                    
+                            {% if day != 0 and tasks_by_day.get(day) %}
+                                data-task-title="{{ tasks_by_day[day][0].title }}"
+                                data-task-desc="{{ tasks_by_day[day][0].description }}"
+                            {% endif %}>
+                    
+                            {% if day != 0 %}
+                                {{ day }}
+                    
+                                {% if tasks_by_day.get(day) %}
+                                    {% for task in tasks_by_day[day] %}
+                                        {% if task.is_complete %}
+                                        <span class="task-dot-green"></span>
+                                        {% else %}
+                                        <span class="task-dot-red"></span>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                    
+                        </td>
+                    
+                        {% endfor %}
+                    
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+            </table>
+            <a href="{{ url_for('dashboard', month=current_month, year=current_year) }}" class="btn">Today</a>
+        </section>
+
+        <section class="widget to-do">
+            <div class="card-header">
+                <h1 class="to-do-title">✅ To-do list</h1>
+            </div>
+
+            <div class="todo-buttons">
+                <a class="button" id="add-button" onclick="addTaskPopup()">Add a task</a>
+                <br>
+            </div>
+
+            <table class="bordered-table">
+                <thead>
+                    <tr>
+                    <th>Priority</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Due date</th>
+                    <th>Completion status</th>
+                    <th>Reminder?</th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    {% if not tasks %}
+                    <tr>
+                        <td colspan="7">No tasks found. Add a new task to get started!</td>
+                    </tr>
+                    {% endif %}
+                    {% for task in tasks %}
+                    <tr>
+                    
+                        <td><strong>{{ loop.index }}</strong></td>
+                    
+                        <td>{{ task.title }}</td>
+                    
+                        <td>{{ task.description }}</td>
+                    
+                        <td>{{ task.due_date.strftime('%d %b %Y') }}</td>
+                    
+                        <td>
+                            <a id='button' class="{{ 'complete' if task.is_complete else 'incomplete' }}" onclick="toggleComplete({{ task.id }}, {{ 'true' if task.is_complete else 'false' }})">
+                                {{ 'Complete ✅' if task.is_complete else 'Incomplete ▢' }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ 'Yes' if task.reminder else 'No' }}
+                        </td>
+                    
+                        <td class="task-actions">
+
+                            <button class='task-button' onclick='openEditPopup(
+                                {{ task.id }},
+                                {{ task.title|tojson }},
+                                {{ task.description|tojson }},
+                                "{{ task.due_date.strftime("%Y-%m-%d") }}",
+                                {{ 'true' if task.reminder else 'false' }},
+                                {{ 'true' if task.is_complete else 'false' }}
+                            )'>
+                                Edit
+                            </button>
+                        
+                            <button class='task-button' onclick="deleteTask({{ task.id }})">
+                                Delete
+                            </button>
+                        
+                        </td>
+                    
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>    
+        </section>
+    </main>
+</div>
+
+<div id="task-popover" class="task-popover">
+    <div class="popover-arrow"></div>
+    <h4 id="popoverTitle"></h4>
+    <p id="popoverDesc"></p>
+</div>
+
+<!-- Popup form to add task -->
+<div class="overlay" id="popupOverlay">
+    <div class="popup">
+        <button class="close-btn" onclick="closeAddPopup()">&times;</button>
+        <h2>Add a task</h2>
+        <div id="error-message" class="error"></div>
+        <div id="success-message" class="success"></div>
+        <form id="add-task-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="text" name="title" id="title" placeholder="Title" required>
+            <input type="text" name="description" id="description" placeholder="Description" required>
+            <input type="date" name="due_date" id="due_date" required>
+            <label>
+            <input type="checkbox" name="reminder" id="reminder">Reminder?
+            </label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!-- Popup form to edit task -->
+<div class="overlay" id="editPopupOverlay">
+    <div class="popup">
+        <button class="close-btn" onclick="closeEditPopup()">&times;</button>
+        <h2>Edit Task</h2>
+
+        <form id="edit-task-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" id="edit-task-id">
+            
+            <input type="text" id="edit-title" name="title" placeholder="Title" required>
+            <input type="text" id="edit-description" name="description" placeholder="Description" required>
+            <input type="date" id="edit-due-date" name="due_date" required>
+            
+            <label> Complete
+                <input type="checkbox" id="edit-is-complete" name="is_complete">
+            </label>
+            <label> Reminder
+                <input type="checkbox" id="edit-reminder" name="reminder">
+            </label>
+            
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const popover = document.getElementById("task-popover");
+    const pTitle = document.getElementById("popoverTitle");
+    const pDesc = document.getElementById("popoverDesc");
+
+    const taskDays = document.querySelectorAll('td[data-task-title]');
+    const addButton = document.getElementById('add-button');
+    const deleteButton = document.getElementById('delete-button');
+    const editButton = document.getElementById('edit-button');
+
+    taskDays.forEach(day => {
+        day.addEventListener('mouseover', function(e) {
+            e.stopPropagation();
+
+            const title = this.getAttribute('data-task-title');
+            const desc = this.getAttribute('data-task-desc');
+
+            const rect = this.getBoundingClientRect();
+
+            pTitle.innerText = title;
+            pDesc.innerText = desc;
+
+            popover.style.display = "block";
+            popover.style.left = (rect.right + window.scrollX + 10) + "px";
+            popover.style.top = (rect.top + window.scrollY + (rect.height / 2) - 20) + "px";
+        });
+    });
+
+    // Hide the popover when you click anywhere else on the screen
+    document.addEventListener('mouseover', function() {
+        popover.style.display = "none";
+    });
+});
+</script>
+<script src = "../static/js/change_quote.js"></script>
+<script src="../static/js/to-do-popups.js"></script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}
+Pomodoro timer
+{% endblock %}
+
+{% block content %}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <main>
+   <div class="title-container">
+    <h1 class="main-title">POMODORO TIMER</h1>
+   </div>
+   <div class="timer-container">
+    <div class="timer-card">
+        <div id="error-message" class="error"></div>
+        <div id="success-message" class="success"></div>
+     <div class="tabs-flex">
+       <button id="tab-work" class="canva-button" onclick="switchMode('work')" style="font-weight: 500; font-size: 14px;">Work</button> 
+       <button id="tab-short" class="canva-button" onclick="switchMode('short')" style="font-weight: 500; font-size: 14px;">Short Break</button> 
+       <button id="tab-long" class="canva-button" onclick="switchMode('long')" style="font-weight: 500; font-size: 14px;">Long Break</button>
+     </div>
+
+    <div class="timer-ring-wrapper">
+      <svg class="svg-rotate" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb" stroke-width="8"></circle> 
+        <circle id="progress" class="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="#e74c3c" stroke-width="8" stroke-linecap="round" stroke-dasharray="565.49" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="timer-display-wrapper">
+        <span id="timer-display">25:00</span>
+      </div>
+     </div>
+     
+     <div class="controls-flex">
+       <button id="start-btn" class="canva-button btn-control" onclick="startTimer()" style="background: rgb(231, 76, 60); color: rgb(255, 255, 255); font-weight: 600;">Start</button> 
+       <button id="pause-btn" class="canva-button btn-control hidden" onclick="pauseTimer()" style="background: rgb(107, 114, 128); color: rgb(255, 255, 255); font-weight: 600;">Pause</button> 
+       <button class="canva-button btn-reset" onclick="resetTimer()" style="background: rgb(240, 192, 189); color: rgb(0, 0, 0); font-weight: 500;">Reset</button>
+     </div>
+     
+     <div class="session-tracker">
+       <span>Current sessions:</span> 
+       <span id="session-count" class="session-count-num">0</span>
+     </div>
+    <br>
+
+    <details class="pomodoro-details-panel">
+        <summary>Customise timer settings</summary>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #c1bebe;">
+          <div class="sliders-wrapper">
+              <div class="slider-group">
+              <label for="work_time" style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">Work time length:</label>
+              <input type="range" min="1" max="100" value="25" class="slider" id="work_time" oninput="this.nextElementSibling.value = this.value">
+              <output style="font-weight: bold; margin-left: 10px;">25</output>
+              </div>
+
+              <div class="slider-group" style="margin-top: 15px;">
+                <label for="short_time" style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">Short break length:</label>
+                <input type="range" min="1" max="30" value="5" class="slider" id="short_time" oninput="this.nextElementSibling.value = this.value">
+                <output style="font-weight: bold; margin-left: 10px;">5</output>
+              </div>
+              
+              <div class="slider-group" style="margin-top: 15px;">
+                <label for="long_time" style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">Long break length:</label>
+                <input type="range" min="1" max="60" value="15" class="slider" id="long_time" oninput="this.nextElementSibling.value = this.value">
+                <output style="font-weight: bold; margin-left: 10px;">15</output>
+              </div>
+
+          </div>
+
+          <br><br>
+          <div class="group-management-wrapper">
+              <form id="add-group-name" action="{{ url_for('pomodoro.update_group') }}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <label for="group_name">Enter a study group to join:</label>
+                  <input id="group_name" name="group_name" type="text" placeholder="E.g. HSC 2026">
+                  <br><br>
+                  <input id="join-group-btn" type="submit" value="Join group">
+              </form>
+              
+              <div class="leaderboard-link-container">
+                  {% if current_user.study_group %}
+                  <a href="{{ url_for('pomodoro.study_leaderboard', group=current_user.study_group) }}" class="leaderboard-link">
+                      🏆 View leaderboard for {{ current_user.study_group }}
+                  </a>
+                  {% endif %}
+              </div>
+          </div>
+
+    </details>
+
+    </div>
+    </div>
+    </main>
+
+<script src="../static/js/pomodoro_timer.js"></script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}
+Create an account
+{% endblock %}
+
+{% block content %}
+    <div class="wrapper">
+        <h1 class="title">Sign Up</h1>
+        <div id="error-message" class="error"></div>
+        <div id="success-message" class="success"></div>
+        <form id="register-form" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="input-box">
+                <input id="email" type="email" name="email" placeholder="example@email.com" autofocus="" required>
+                <label for='email'>Email</label>
+                <i class='bx  bx-envelope'></i> 
+            </div>
+    
+            <div class="input-box">
+                <input id="name" type="text" name="name" placeholder="e.g. John Smith" autofocus="" required>
+                <label for='name'>Name</label>
+                <i class='bx  bxs-user'></i>
+            </div>
+    
+            <div class="input-box">
+                <input id="password" type="password" name="password" placeholder="" required>
+                <label for='password'>Password</label>
+                <i class='bx  bxs-lock-alt'></i>
+            </div>
+
+            <ul id="password-requirements" style="list-style: none; font-size: 0.8em; color: gray;">
+                <li id="length">✖ 8-64 characters</li>
+                <li id="uppercase">✖ One uppercase letter</li>
+                <li id="lowercase">✖ One lowercase letter</li>
+                <li id="number">✖ One digit</li>
+                <li id="special">✖ One special character (!@#\-_=+.\$%\^&\*)</li>
+            </ul>
+
+            <br>
+            
+            <script src="../static/js/input_validation.js"></script>
+    
+            <button type="submit" class="btn">Sign up</button>
+            <div class="link">
+                <p>Already have an account? Login <a href="/login">here</a></p>
+            </div>
+            </form>
+    </div>
+{% endblock %}

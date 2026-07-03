@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}
+🏆 {{group_name}} Leaderboard
+{% endblock %}
+{% block content %}
+    <div class="leaderboard-table">
+        <h2>🏆 {{ group_name }} Study Leaderboard</h2>
+        <p>Rankings are calculated by total overall study minutes today.</p>
+
+        <div class="timer-container" style="max-width: 90%; margin: 0 auto;">
+        <div class="timer-card" style="padding: 25px; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            
+            <table class="leaderboard-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                <tr style="border-bottom: 2px solid #eee; height: 40px; color: #555;">
+                    <th style="width: 20%;">Rank</th>
+                    <th style="width: 50%;">Name</th>
+                    <th style="width: 30%;">Total Study Time</th>
+                </tr>
+                </thead>
+                
+                <tbody id="leaderboard-body" style="color: #000">
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 30px; color: #888;"> Loading rankings...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <div style="text-align: center;">
+                <a href="{{ url_for('pomodoro.timer_dashboard') }}" class="canva-button" style="text-decoration: none; display: inline-block; background: #e74c3c; color: #fff; padding: 10px 20px; border-radius: 4px; font-weight: 500;">Back to Timer</a>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div id="group-metadata" data-group="{{ group_name }}"></div>
+
+<script src="{{ url_for('static', filename='js/live_leaderboard.js') }}"></script>
+{% endblock %}

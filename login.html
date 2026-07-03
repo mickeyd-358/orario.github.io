@@ -1,0 +1,53 @@
+{% extends 'base.html'%}
+{% block title %}
+Login
+{% endblock %}
+
+{% block content %}
+    <div class="wrapper">
+        <h1 class="title">Login</h1>
+        <div id="error-message" class="error"></div>
+        <div id="success-message" class="success"></div>
+        
+        <form id="login-form" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="input-box">
+                <input id="email" type="email" name="email" placeholder="" autofocus="" required>
+                <label for='email'>Email</label>
+                <i class='bx  bx-envelope'></i>
+            </div>
+
+            <div class="input-box">
+                <input id="password" type="password" name="password" placeholder="" required>
+                <label for='password'>Password</label>
+                <i class="far fa-eye" id="togglePassword"></i>
+
+                <script>
+                    const togglePassword = document.getElementById('togglePassword');
+                    const password = document.getElementById('password');
+
+                    togglePassword.addEventListener('click', function (e) {
+                        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                        password.setAttribute('type', type);
+                        this.classList.toggle('fa-eye-slash');
+                    });
+                </script>
+            </div>
+            
+            <div class="remember-forgot">
+                <label class="checkbox">
+                    <input type="checkbox" name="remember">
+                    Remember me
+                </label>
+                <a href="#">Forgot password?</a>
+            </div>
+
+            <script src="../static/js/login_validation.js"></script>
+
+            <button type="submit" class="btn">Login</button>
+            <div class="link">
+                <p>Don't have an account? Register <a href="/register/">here</a></p>
+            </div>
+        </form>
+    </div>
+{% endblock %}

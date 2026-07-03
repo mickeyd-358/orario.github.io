@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}
+Home page
+{% endblock %}
+
+{% block content %}
+    <div class="home-title">
+        <img src="{{ url_for('static', filename='img/logo.png') }}"></img>
+        <h1>Welcome to Orario</h1>
+        <h4>Productivity app for students</h4>
+    </div>
+    <div class="home-directions">
+        <h4>Already have an account? Login <a href="{{ url_for('auth.login')}}">here</a></h4>
+        <h4>Don't have an account? Register <a href="{{ url_for('register')}}">here</a></h4>
+    </div>
+{% endblock %}
