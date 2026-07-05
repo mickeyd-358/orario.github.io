@@ -1514,7 +1514,7 @@ circle {
 }
 
 /* --- STYLING FOR POMODORO WIDGET ON DASHBOARD --- */
-.widget.to-do {
+.pomodoro {
     flex: 1 1 500px;
     min-width: 100%;
     width: 100%;    
