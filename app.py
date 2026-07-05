@@ -32,6 +32,9 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 # Initialise database
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(tasks_bp)
 app.register_blueprint(genai_bp)
