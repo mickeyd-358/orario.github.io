@@ -41,6 +41,9 @@ app.register_blueprint(pomodoro_bp)
 login_manager = LoginManager(app)
 login_manager.login_view = 'auth.login'
 
+with app.app_context():
+    db.create_all()
+
 # Stops circular import
 from models import Task, User
 
