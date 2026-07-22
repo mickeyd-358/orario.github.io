@@ -1,16 +1,103 @@
 {% extends 'base.html' %}
-{% block title %}
-Home page
-{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-    <div class="home-title">
-        <img src="{{ url_for('static', filename='img/logo.png') }}"></img>
-        <h1>Welcome to Orario</h1>
-        <h4>Productivity app for students</h4>
+<section class="hero">
+    <div class="hero-content">
+        <img class="hero-logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="Orario Logo">
+
+        <h1>Study smarter.</h1><span id="hero-main-subtitle">Achieve more.</span><br><br>
+        <p class="hero-subtitle">
+            Orario combines task management, AI-powered flashcards,
+            study timers and calendar planning into one streamlined
+            productivity platform built specifically for students.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}" class="primary-btn">Get Started</a>
+            <a href="{{ url_for('auth.login') }}" class="secondary-btn">Login</a>
+        </div>
     </div>
-    <div class="home-directions">
-        <h4>Already have an account? Login <a href="{{ url_for('auth.login')}}">here</a></h4>
-        <h4>Don't have an account? Register <a href="{{ url_for('register')}}">here</a></h4>
+</section>
+
+
+<section class="features">
+
+    <div class="section-heading">
+        <h2>Everything you need to stay productive</h2>
+        <p>Powerful tools designed to help you organise your workload, study efficiently and build consistent habits.</p>
     </div>
+
+    <div class="feature-grid">
+
+        <div class="feature-card">
+            <i class='bx bx-calendar-check'></i>
+            <h3>Task Planner</h3>
+            <p>Manage assignments, assessments and personal goals with due dates, reminders and completion tracking.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class='bx bx-brain'></i>
+            <h3>AI Flashcards</h3>
+            <p>Upload your notes and instantly generate interactive flashcards using artificial intelligence.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class='bx bx-timer'></i>
+            <h3>Pomodoro Timer</h3>
+            <p>Stay focused using structured study sessions while building daily study streaks.</p>
+
+        </div>
+    </div>
+</section>
+
+
+<section class="why-orario">
+
+    <div class="section-heading">
+        <h2>Why choose Orario?</h2>
+    </div>
+
+    <div class="benefits">
+
+        <div class="benefit">
+            <i class='bx bx-check-circle'></i>
+            <span>Simple and intuitive interface</span>
+        </div>
+
+        <div class="benefit">
+            <i class='bx bx-check-circle'></i>
+            <span>AI-powered learning tools</span>
+        </div>
+
+        <div class="benefit">
+            <i class='bx bx-check-circle'></i>
+            <span>Calendar and task organisation</span>
+        </div>
+
+        <div class="benefit">
+            <i class='bx bx-check-circle'></i>
+            <span>Study reminders and notifications</span>
+        </div>
+
+        <div class="benefit">
+            <i class='bx bx-check-circle'></i>
+            <span>Pomodoro timer and study streak tracking</span>
+        </div>
+
+        <div class="benefit">
+            <i class='bx bx-check-circle'></i>
+            <span>Designed specifically for students</span>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to boost your productivity?</h2>
+    <p>Create your free account today and start organising your study with Orario.</p>
+    <div class="hero-buttons">
+        <a href="{{ url_for('register') }}" class="primary-btn">Create Account</a>
+        <a href="{{ url_for('auth.login') }}" class="secondary-btn">Sign In</a>
+    </div>
+</section>
 {% endblock %}

@@ -21,12 +21,37 @@ def get_calendar_navigation(year, month):
     return prev_year, prev_month, next_year, next_month
 
 import os
+import re
+import unicodedata
 
 from docx import Document
 from pypdf import PdfReader
 
 MAX_API_CHARS = 7000 
-MAX_TEXT_SIZE = 5 * 1024 * 1024 # 5MB absolute RAM safety guardrail
+MAX_TEXT_SIZE = 5 * 1024 * 1024  # 5MB
+
+def clean_text_for_json(text):
+    """ Remove characters that break JSON generation in free models.
+        Returns:
+            - Stripped text without null bytes, excessive whitespace
+              or unexpected symbols
+    """
+    
+    if not text:
+        return ""
+
+    # Remove null bytes and control characters
+    text = text.replace("\x00", "")
+    text = re.sub(r"[\x01-\x1F\x7F]", " ", text)
+
+    # Normalize Unicode (fixes ligatures, accents, weird spacing)
+    text = unicodedata.normalize("NFKC", text)
+
+    # Collapse excessive whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return text
+
 
 def extract_text_for_ai(file_path, allowed_directory):
     """
@@ -46,35 +71,45 @@ def extract_text_for_ai(file_path, allowed_directory):
 
         ext = os.path.splitext(abs_file_path)[1].lower()
         raw_text = ""
-        
+
+        # TXT
         if ext == '.txt':
             if os.path.getsize(abs_file_path) > MAX_TEXT_SIZE:
                 raise ValueError("File exceeds maximum allowed size limits.")
-            with open(abs_file_path, 'r', encoding='utf-8') as f:
+            with open(abs_file_path, 'r', encoding='utf-8', errors="ignore") as f:
                 raw_text = f.read()
-                
+
+        # PDF
         elif ext == '.pdf':
             reader = PdfReader(abs_file_path)
             pages_text = []
             for page in reader.pages:
                 pages_text.append(page.extract_text() or "")
-            raw_text = "".join(pages_text)
-            
+            raw_text = " ".join(pages_text)
+
+        # DOCX
         elif ext == '.docx':
             doc = Document(abs_file_path)
-            raw_text = "\n".join([p.text for p in doc.paragraphs])
+            paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+            raw_text = " ".join(paragraphs)
+
         else:
             return "" # Unsupported extension file type
-            
-        # Enforce strict 7,000 character limit to keep API payload stable
+
+        # Clean dangerous characters
+        raw_text = clean_text_for_json(raw_text)
+
+        # Truncate safely
         if len(raw_text) > MAX_API_CHARS:
             # Drop slightly below the maximum threshold limit to account for truncation text padding
             truncated = raw_text[:MAX_API_CHARS - 100]
             last_space = truncated.rfind(' ')
             if last_space != -1:
                 truncated = truncated[:last_space]
-            return truncated + "\n\n[... Text truncated by system due to context limit ...]"
-            
+
+            # JSON-safe truncation message
+            return truncated + " (text truncated)"
+
         return raw_text
 
     except Exception as e:

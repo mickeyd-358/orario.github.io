@@ -1,11 +1,14 @@
 # Routes for AI feature
 import os
+import traceback
+import uuid
 
 from dotenv import load_dotenv
 from flask import (Blueprint, current_app, json, jsonify, redirect,
                    render_template, request, url_for)
 from flask_login import current_user, login_required
 from groq import Groq
+from werkzeug.utils import secure_filename
 
 from extensions import db
 from models import Flashcard
@@ -17,16 +20,15 @@ genai_bp = Blueprint('genai', __name__)
 # Safely loading the key from environment variables
 client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
-
 @genai_bp.route('/flashcards', methods=['GET'])
 @login_required
 def flashcards_dashboard():
     """Renders the main flashcard control deck panel."""
-    # 1. Get a distinct list of group names this user has created
+    # Get a distinct list of group names this user has created
     groups = db.session.query(Flashcard.group).filter_by(user_id=current_user.id).distinct().all()
     group_names = [g[0] for g in groups if g[0]]
 
-    # 2. Check if the user is clicking to filter down into a specific study deck group
+    # Check if the user is clicking to filter down into a specific study deck group
     selected_group = request.args.get('study_group')
     
     cards_to_render = []
@@ -40,92 +42,216 @@ def flashcards_dashboard():
         selected_group=selected_group
     )
 
-
 @genai_bp.route('/generate-flashcards', methods=['POST'])
 @login_required
 def generate_flashcards():
     temp_path = None
     try:
+        #Validate if file exists
         if 'study_file' not in request.files:
             return jsonify({"success": False, "error": "No file uploaded."}), 400
-            
-        uploaded_file = request.files['study_file']
-        num_cards = request.form.get('num_cards', 5, type=int)
-
-        # Fetch current user groups to prevent duplicate entries
-        groups = db.session.query(Flashcard.group).filter_by(user_id=current_user.id).distinct().all()
-        group_names = [g[0] for g in groups if g[0]]
-
-        group_name = request.form.get('group-name', '').strip() or 'Untitled Group'
-
-        if group_name in group_names:
-            return jsonify({"success": False, "error": "A group with this name already exists. Please choose a different name."}), 400
         
+        uploaded_file = request.files['study_file']
+
+        #Validate filename
         if uploaded_file.filename == '':
             return jsonify({"success": False, "error": "No file selected."}), 400
 
-        temp_dir = os.path.join(current_app.root_path, 'static', 'temp')
+        num_cards = request.form.get("num_cards", 5, type=int)
+
+        # Validate group name
+        group_name = request.form.get("group-name", "").strip() or "Untitled Group"
+        existing_groups = (
+            db.session.query(Flashcard.group)
+            .filter_by(user_id=current_user.id)
+            .distinct()
+            .all()
+        )
+        existing_groups = [g[0] for g in existing_groups if g[0]]
+        if group_name in existing_groups:
+            return jsonify({"success": False, "error": "A group with this name already exists."}), 400
+
+        # Save temp file
+        temp_dir = os.path.join(current_app.root_path, "static", "temp")
         os.makedirs(temp_dir, exist_ok=True)
-        temp_path = os.path.join(temp_dir, uploaded_file.filename)
+        safe_name = secure_filename(uploaded_file.filename)
+        filename = f"{current_user.id}_{uuid.uuid4()}_{safe_name}"
+        temp_path = os.path.join(temp_dir, filename)
         uploaded_file.save(temp_path)
 
+        # Extract text using helper function
         file_text = extract_text_for_ai(temp_path, allowed_directory=temp_dir)
-        
         if not file_text or len(file_text.strip()) < 10:
-            return jsonify({"success": False, "error": "Could not extract readable text or file was completely empty."}), 400
-        
-        custom_user_message = request.form.get('custom-message')
+            return jsonify({"success": False, "error": "Could not extract readable text."}), 400
 
-        prompt = (
-            "You are an elite study assistant. Analyse the provided text, extract core concepts, and turn them into flashcards. "
-            "You must return your response inside a single root JSON object containing a key called 'flashcards' which points to an array. "
-            "Use a mix of styles: definitions, true/false, and question-answer formats unless specified. "
-            "Each flashcard item within the array must have exactly two string fields: 'front' and 'back'.\n\n"
-            f"Make sure to generate exactly {num_cards} flashcards. No more, no less. If you can't, duplicate some flashcards until you have that EXACT amount.\n\n"
-        )
+        # Trim long text to meet API limits
+        file_text = file_text[:8000]
 
-        # Only append user styling instructions cleanly if they entered them
-        if custom_user_message and custom_user_message.strip():
-            prompt += f"User Modification Criteria: {custom_user_message.strip()}\n\n"
+        # Sanitise user instructions
+        custom_user_message = request.form.get("custom-message", "").strip()
+        custom_user_message = custom_user_message.replace('"', "'")
 
-        prompt += f"--- begin source content ---\n{file_text}\n ---end---"
+        # Flashcard extractor
+        def extract_flashcards_from_text(text):
+            cards = []
+            if not text:
+                return cards
 
+            # try JSON first
+            try:
+                obj = json.loads(text)
+                flashcard = obj.get("flashcards", [])
+                for card in flashcard:
+                    front = card.get("front")
+                    back = card.get("back")
+                    if isinstance(front, list):
+                        front = front[0]
+                    if isinstance(front, str) and isinstance(back, str):
+                        cards.append({"front": front, "back": back})
+                if cards:
+                    return cards
+            except Exception as e:
+                print(e)
+            # strip markdown characters
+            cleaned = text.replace("```json", "").replace("```", "").strip()
+
+            # try JSON again
+            try:
+                obj = json.loads(cleaned)
+                fc = obj.get("flashcards", [])
+                for c in fc:
+                    front = c.get("front")
+                    back = c.get("back")
+                    if isinstance(front, list):
+                        front = front[0]
+                    if isinstance(front, str) and isinstance(back, str):
+                        cards.append({"front": front, "back": back})
+                if cards:
+                    return cards
+            except Exception as e:
+                print(e)
+            # Regex to ensure nothing slips through
+            import re
+            pattern = re.compile(
+                r'front"\s*:\s*"([^"]+)"[\s\S]*?back"\s*:\s*"([^"]+)"',
+                re.IGNORECASE
+            )
+            for m in pattern.finditer(cleaned):
+                front, back = m.group(1), m.group(2)
+                cards.append({"front": front, "back": back})
+
+            return cards
+
+        # build main prompt
+        base_prompt = f"""
+        You are an elite study assistant. Generate {num_cards} flashcards, a mix of definitions, true/false.
+
+            Return ONLY JSON:
+            {{"flashcards":[{{"front":"...","back":"..."}}]}}
+
+            --- begin text ---
+            {file_text}
+            --- end ---
+            """
+
+        # call model
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-            response_format={"type": "json_object"}
+            model="openai/gpt-oss-20b",
+            messages=[{"role": "user", "content": base_prompt}],
+            temperature=0,
         )
 
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        raw_output = response.choices[0].message.content
+        print("\nRAW AI OUTPUT:\n", raw_output)
 
-        raw_json_string = response.choices[0].message.content
-        data = json.loads(raw_json_string)
-        flashcards_list = data.get('flashcards', [])
+        # fallback if empty
+        if not raw_output or not raw_output.strip():
+            print("Model returned empty output. Retrying with fallback prompt.")
+            fallback_prompt = f"""
+                Generate {num_cards} flashcards.
 
+                Return ONLY JSON:
+                {{"flashcards":[{{"front":"...","back":"..."}}]}}
+
+                --- begin text ---
+                {file_text}
+                --- end ---
+                """
+            fallback_response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[{"role": "user", "content": fallback_prompt}],
+                temperature=0,
+            )
+            raw_output = fallback_response.choices[0].message.content
+            print("\nFALLBACK AI OUTPUT:\n", raw_output)
+
+        # Extract initial cards
+        flashcards_list = extract_flashcards_from_text(raw_output)
+
+        # Generation for missing cards
+        while len(flashcards_list) < num_cards:
+            missing = num_cards - len(flashcards_list)
+
+            missing_prompt = f"""
+                Generate exactly {missing} flashcards.
+
+                Return ONLY JSON:
+                {{"flashcards":[{{"front":"...","back":"..."}}]}}
+
+                --- begin text ---
+                {file_text}
+                --- end ---
+                """
+
+            missing_response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[{"role": "user", "content": missing_prompt}],
+                temperature=0,
+            )
+
+            raw_new_fc = missing_response.choices[0].message.content
+            print("\nRAW BATCH OUTPUT:\n", raw_new_fc)
+
+            if not raw_new_fc or not raw_new_fc.strip():
+                print("Batch returned empty output. Retrying.")
+                continue
+
+            missing_cards = extract_flashcards_from_text(raw_new_fc)
+
+            if not missing_cards:
+                print("Batch returned no valid cards. Retrying.")
+                continue
+
+            flashcards_list.extend(missing_cards)
+
+        # final trim
+        flashcards_list = flashcards_list[:num_cards]
+
+        # save to db
         for card in flashcards_list:
             db.session.add(Flashcard(
-                user_id=current_user.id, 
-                front=card['front'], 
-                back=card['back'], 
+                user_id=current_user.id,
+                front=card["front"],
+                back=card["back"],
                 group=group_name
             ))
         db.session.commit()
 
-        validation_message = f'Successfully created the deck "{group_name}"'
-
-        # Return a JSON object containing the target URL path instead of a redirect response
         return jsonify({
-            "success": True, 
+            "success": True,
             "redirect": url_for('genai.flashcards_dashboard', study_group=group_name),
-            "message": validation_message
+            "message": f'Successfully created the deck \"{group_name}\"'
         }), 200
 
     except Exception as e:
+        db.session.rollback()
+        traceback.print_exc()
+        print("Error:", e)
+        return jsonify({"success": False, "error": "Something went wrong! Please reload and try again."}), 500
+
+    finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
-        return jsonify({"success": False, "error": str(e)}), 500
     
 @genai_bp.route('/api/edit_flashcard/<int:flashcard_id>', methods=['POST'])
 def edit_flashcard(flashcard_id):

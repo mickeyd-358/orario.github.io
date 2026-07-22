@@ -1,0 +1,10 @@
+.env
+__pycache__/extensions.cpython-313.pyc
+instance/users.db
+__pycache__/models.cpython-313.pyc
+routes/__pycache__/auth.cpython-313.pyc
+routes/__pycache__/genai.cpython-313.pyc
+routes/__pycache__/pomodoro.cpython-313.pyc
+routes/__pycache__/tasks.cpython-313.pyc
+utils/__pycache__/__init__.cpython-313.pyc
+utils/__pycache__/utils.cpython-313.pyc

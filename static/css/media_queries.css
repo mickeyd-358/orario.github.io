@@ -1,0 +1,423 @@
+/* ==========================================================================
+   Desktop styles (< 1000px)
+   ========================================================================== */
+@media (max-width: 1000px) {
+    body {
+        font-size: 16px;
+    }
+
+    .widget-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 15px;
+        gap: 30px;
+    }
+
+    .side-panel-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 650px;
+        height: auto; 
+        gap: 20px;
+    }
+
+    .card, 
+    .widget.to-do,
+    .widget.clock-widget,
+    .widget.side-panel.quote {
+        width: 100%;
+        max-width: 650px;
+        min-width: 0;
+        margin: 0 auto;
+        flex: none;
+    }
+
+    .widget.to-do, .widget.pomodoro {
+        width: 100%;
+        max-width: 100vw;
+    }
+    
+    .widget.side-panel.quote h1,
+    #editable-quote {
+        text-align: center;
+    }
+
+    .stats-container{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .completion-card{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .streak-widget{
+        min-width:220px;
+        max-width:220px;
+        padding:28px 22px;
+    }
+
+    .fire-container{
+        transform:scale(.8);
+    }
+
+}
+
+/* ==========================================================================
+   Mobile layout (+ different navbar) (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    body {
+        padding-top: 20px;       
+        padding-bottom: 95px;    
+    }
+
+    /* Error messages appear on top right for mobile */
+.error{
+    display: none;
+    color: red;
+    transition: opacity 0.5s ease;
+    background-color: #fce4e4;
+    border: 1px solid #fcc2c2;
+    padding: 10px;
+    top: 1%;
+    right: 1%;
+    margin:0%;
+
+    position: fixed;
+    top: 20px;
+    right: 20px;
+
+    width: fit-content;
+    height: auto;
+    max-height: fit-content;
+
+    padding: 14px 18px;
+
+    border-radius: 10px;
+
+    z-index: 9999;
+}
+
+.success {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    color: rgb(12, 114, 12);
+    background-color: #e4fcee;
+    border: 1px solid #c2fcd3;
+    padding: 10px;
+    border-radius: 5px;
+    top: 1%;
+    right: 1%;
+    margin:0%;
+
+    position: fixed;
+    top: 20px;
+    right: 20px;
+
+    width: fit-content;
+    height: auto;
+    max-height: fit-content;
+
+    padding: 14px 18px;
+
+    border-radius: 10px;
+
+    z-index: 9999;
+}
+
+    .dashboard-wrapper,
+    .widget-container,
+    .side-panel-column {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        transform: none;
+        left: 0;
+        position: relative;
+    }
+
+    /* Prevent individual widgets from breaking screen widths */
+    .card, 
+    .widget.to-do,
+    .widget.clock-widget,
+    .widget.side-panel.quote,
+    .widget {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        margin: 0 0 20px 0;
+        flex: none;
+    }
+
+    /* --- New widget text sizes --- */
+    .dashboard-header h1 {
+        font-size: 2.2rem; 
+        text-align: center;
+        padding: 10px 0;
+    }
+
+    .widget h1, .to-do-title, .card-header {
+        font-size: 1.4rem; 
+    }
+
+    #current-time {
+        font-size: 3rem;
+    }
+
+    #editable-quote {
+        font-size: 1.3rem; 
+    }
+
+    .clock-widget label {
+        font-size: 1rem; 
+    }
+
+    .widget {
+        padding: 20px 15px;
+    }
+
+    /* --- Todo list labels and alignment --- */
+    .widget.to-do table, 
+    .widget.to-do tbody, 
+    .widget.to-do tr, 
+    .widget.to-do td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .widget.to-do thead {
+        display: none;
+    }
+
+    .widget.to-do tr {
+        background:var(--widget-bg);
+        border:1px solid var(--border-color);
+        border-radius:18px;
+        padding:18px;
+        margin-bottom:20px;
+        box-shadow:0 6px 18px rgba(0,0,0,0.06);
+
+    }
+
+    .widget.to-do td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 5px;
+        font-size: 1.1rem;
+        text-align: right;
+        border: none;
+    }
+
+    .widget.to-do td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--text-color);
+        opacity: 0.7;
+        text-align: left;
+        padding-right: 15px;
+    }
+
+    .widget.to-do td.task-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding-top: 15px;
+    }
+
+    .widget.to-do td.task-actions::before {
+        display: none;
+    }
+
+    .task-button {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+
+    /* --- Calendar Table --- */
+    .bordered-table {
+        width: 100%;
+        table-layout: fixed; 
+    }
+
+    .bordered-table td {
+        height: 45px; 
+        font-size: 1rem;
+    }
+
+    /* --- Icon-only navbar --- */
+    .main-navbar {
+        position: fixed;
+        top: auto;               
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 65px; 
+        background-color: color-mix(in srgb, var(--nav-bg) 60%, transparent); 
+        border-top: 1px solid color-mix(in srgb, var(--bg-color) 8%, transparent);   
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: none;
+        z-index: 9999;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+        border-radius: 24px 24px 0 0;
+        padding: 0;
+    }
+
+    .main-navbar .nav-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 16px;
+        max-width: none;
+    }
+
+    .main-navbar .nav-left,
+    .main-navbar .nav-right {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        flex: 1;
+        height: 100%;
+        gap: 0;
+    }
+
+    .main-navbar .nav-right {
+        flex-grow: 1;
+    }
+
+    .theme-switch-container {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 0 10px;
+        margin: 0;
+    }
+
+    .main-navbar .nav-item,
+    .nav-btn-logout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-grow: 1;
+        height: 100%;
+        background: none;
+        padding: 0;
+        border: none;
+        width: auto;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .main-navbar .nav-item i,
+    .main-navbar .nav-item span.icon,
+    .nav-btn-logout i,
+    .nav-btn-logout span.icon {
+        font-size: 24px; 
+        display: inline-block;
+        filter: grayscale(100%) opacity(40%);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
+    }
+
+    /* Hides the desktop navigation string labels */
+    .main-navbar .nav-item text,
+    .main-navbar .nav-item span:not(.icon),
+    .nav-btn-logout text,
+    .nav-btn-logout span:not(.icon) {
+        display: none; 
+    }
+
+    .main-navbar .nav-item::after {
+        display: none; 
+    }
+
+    .logo {
+        padding: 1px;
+    }
+
+    .logo-title, .logo-subtitle {
+        display: none;
+    }
+
+    /* Bright active state color restoration for selected link icon*/
+    .main-navbar .nav-item.active i,
+    .main-navbar .nav-item.active span.icon {
+        filter: grayscale(0%) opacity(100%); 
+        transform: translateY(-4px) scale(1.15); 
+    }
+
+    .main-title {
+        font-size: 3.6rem;
+    }
+    
+    .main-navbar .nav-item:active i,
+    .main-navbar .nav-item.active:active i,
+    .nav-btn-logout:active i,
+    .nav-btn-logout:active span.icon {
+        transform: scale(0.85);
+    }
+
+    /* Red indicator tone modification when tapping logout */
+    .nav-btn-logout:active i,
+    .nav-btn-logout:active span.icon {
+        filter: grayscale(0%) sepia(100%) hue-rotate(-50deg) saturate(5); 
+    }
+
+    #light-dark-indicator {
+        display:none;
+    }
+
+    .slider-round {
+        width:45px;
+        height:26px;
+    }
+
+    .slider-round::before {
+        width:20px;
+        height:20px;
+        background-size:12px;
+    }
+
+    input:checked + .slider-round::before {
+        transform:translateX(19px);
+    }
+    
+    /* Login widget wrapper adjustment */
+    .wrapper {
+        width: 90%;
+        max-width: 400px;
+        padding: 30px 20px;
+    }
+
+    #pomodoro-info{
+        flex-direction:column;
+        align-items:center;
+    }
+
+    .stats-container{
+        width:100%;
+        grid-template-columns:1fr;
+    }
+
+    .streak-widget{
+        width:100%;
+        max-width:360px;
+    }
+}

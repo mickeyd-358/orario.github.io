@@ -5,59 +5,78 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/o_logo.png') }}">
     <title>{% block title %} {% endblock %}</title>
     <link rel="stylesheet" type="text/css" href = "{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href = "{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" type="text/css" href = "{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" type="text/css" href = "{{ url_for('static', filename='css/media_queries.css') }}">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
 </head>
 <nav class="main-navbar">
     <div class="nav-container">
+        <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('home') }}" class="logo">
+            <img src="{{ url_for('static', filename='img/o_logo.png') }}" alt="Orario Logo" width="10%" height="10%">
+            <div class="logo-text"> 
+                <span class="logo-title">ORARIO</span>
+                <span class="logo-subtitle">Study Dashboard</span>
+            </div>
+        </a>
         
         {% if current_user.is_authenticated %}
             <div class="nav-left">
                 <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' else '' }}">
-                    🏠 Dashboard
+                    <span class="icon">🏠</span> <span>Dashboard</span>
                 </a>
                 <a href="{{ url_for('genai.flashcards_dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'genai.flashcards_dashboard' else '' }}">
-                    ⚡ Flashcard Maker
+                    <span class="icon">⚡</span> <span>Flashcard Maker</span>
                 </a>
                 <a href="{{ url_for('pomodoro.timer_dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'pomodoro.timer_dashboard' else '' }}">
-                    ⏳ Pomodoro Timer
+                    <span class="icon">⏳</span> <span>Pomodoro Timer</span>
                 </a>
             </div>
 
             <div class="nav-right">
                 <form id="logout-form" action="{{ url_for('logout') }}" method="POST" style="margin: 0;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="nav-btn-logout">Logout</button>
+                    <button type="submit" aria-label="Logout" class="nav-btn-logout">Logout</button>
                 </form>
             </div>
         {% else %}
             <div class="nav-left">
-                <a href="{{ url_for('home') }}" class="nav-item {{ 'active' if request.endpoint == 'home' else '' }}">
-                    Home
+                <a href="{{ url_for('home') }}" aria-label="Home" class="nav-item {{ 'active' if request.endpoint == 'home' else '' }}">
+                    <span class="icon">🏠</span> <span>Home</span>
                 </a>
             </div>
             <div class="nav-right">
-                <a href="{{ url_for('auth.login') }}" class="nav-item {{ 'active' if request.endpoint == 'auth.login' else '' }}">
-                    Login
+                <a href="{{ url_for('auth.login') }}" aria-label="Login" class="nav-item {{ 'active' if request.endpoint == 'auth.login' else '' }}">
+                    <span class="icon">🔑</span> <span>Login</span>
                 </a>
-                <a href="{{ url_for('register') }}" class="nav-item nav-btn-signup {{ 'active' if request.endpoint == 'register' else '' }}">
-                    Sign Up
+                <a href="{{ url_for('register') }}" aria-label="Sign up" class="nav-item nav-btn-signup {{ 'active' if request.endpoint == 'register' else '' }}">
+                    <span class="icon">📋</span> <span>Register</span>
                 </a>
             </div>
         {% endif %}
-    <div class="theme-switch-container">
+    <div class="theme-switch-container" aria-label="Switch theme">
         <label class="switch">
             <input type="checkbox" id="toggleCheckbox" hidden>
             <span class="slider-round"></span>
         </label>
-        <em id="light-dark-indicator">Enable Light Mode!</em>
+        <em id="light-dark-indicator"></em>
     </div>
     </div>
 </nav>
+<header>
+    <div id="error-message" class="error"></div>
+    <div id="success-message" class="success"></div>
+</header>
 <body>
 
     {% block content %}
     {% endblock %}
+    <div class="loader">
+        <h1 id="animated-text-fill">ORARIO</h1>
+    </div>
+    <script src="../static/js/page_loader.js"></script>
     <script src = "../static/js/api.js"></script>
     <script src = "../static/js/logout_validation.js"></script>
     <script src="../static/js/change_theme.js"></script>

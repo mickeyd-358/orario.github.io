@@ -6,8 +6,6 @@ Login
 {% block content %}
     <div class="wrapper">
         <h1 class="title">Login</h1>
-        <div id="error-message" class="error"></div>
-        <div id="success-message" class="success"></div>
         
         <form id="login-form" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

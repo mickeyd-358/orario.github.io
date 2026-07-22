@@ -1,37 +1,60 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const streakDisplay = document.getElementById('streak-counter');
+    const streakCounter = document.getElementById('streak-counter');
+    const streakSubtitle = document.getElementById('streak-subtitle');
+
+    const outerFlame = document.querySelector('.flame.outer');
+    const innerFlame = document.querySelector('.flame.inner');
+    const coreFlame = document.querySelector('.flame.core');
+    const fireContainer = document.querySelector('.fire-container');
 
     async function displayStreak() {
-        fetch('/api/calculate_streak', {method: 'GET'})
-            .then((response) => response.json())
-            .then(data => {
-                if (data.streak === 0) {
-                    streakDisplay.innerHTML = `<h1>Streak: ${data.streak} days!</h1><p>Study today to light the flame</p>
-                    <div class="streak-widget">
-                        <div class="fire-container">
-                        <div class="flame outer dead"></div>
-                        <div class="flame inner dead"></div>
-                        <div class="flame core dead"></div>
-                        </div><br><br>
-                        <div class="streak-label">Study to keep your streak!</div>
-                    </div>
-                    `;
+        try {
+            const response = await fetch('/api/calculate_streak');
+
+            if (!response.ok) {
+                throw new Error('Failed to retrieve streak.');
+            }
+
+            const data = await response.json();
+
+            // Update streak number
+            streakCounter.textContent = data.streak;
+
+            if (data.streak === 0) {
+                streakSubtitle.textContent = 'Study today to light the flame!';
+
+                outerFlame.classList.add('dead');
+                innerFlame.classList.add('dead');
+                coreFlame.classList.add('dead');
+                fireContainer.classList.add('dead');
+            } else {
+                // Motivational messages
+                if (data.streak < 7) {
+                    streakSubtitle.textContent = 'Keep the momentum going!';
+                } else if (data.streak < 30) {
+                    streakSubtitle.textContent = 'Fantastic consistency!';
+                } else if (data.streak < 100) {
+                    streakSubtitle.textContent = "You're on fire!";
                 } else {
-                    streakDisplay.innerHTML = `<h1>Streak: ${data.streak} days!</h1>
-                    <div class="streak-widget">
-                        <div class="fire-container">
-                        <div class="flame outer"></div>
-                        <div class="flame inner"></div>
-                        <div class="flame core"></div>
-                        </div><br><br>
-                        <div class="streak-label">Keep your streak by studying!</div>
-                    </div>
-                    `;
+                    streakSubtitle.textContent = 'Legendary dedication!';
                 }
-        });
-    };
+
+                outerFlame.classList.remove('dead');
+                innerFlame.classList.remove('dead');
+                coreFlame.classList.remove('dead');
+                fireContainer.classList.remove('dead');
+            }
+
+        } catch (error) {
+            console.error('Error loading streak:', error);
+
+            streakCounter.textContent = '--';
+            streakSubtitle.textContent = 'Unable to load streak.';
+        }
+    }
 
     displayStreak();
 
-    setInterval(displayStreak, 10000); 
+    // Refresh every 10 seconds
+    setInterval(displayStreak, 10000);
 });

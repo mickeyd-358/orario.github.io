@@ -96,9 +96,15 @@ def study_leaderboard():
 @pomodoro_bp.route("/api/leaderboard_data", methods=['GET'])
 @login_required
 def leaderboard_data():
-    group_name = request.args.get('group')
+    group_name = request.args.get('group') or current_user.study_group
+
     if not group_name:
-        return jsonify({"success": False, "error": "Group name required"}), 400
+            return jsonify({
+                "success": True,
+                "group_name": None,
+                "leaderboard": [],
+                "rank": None
+            }), 200
 
     studying_users = db.session.query()
 
@@ -120,10 +126,18 @@ def leaderboard_data():
         {"name": row[0], "total_minutes": row[1], "is_studying": row[2]} for row in raw_data
     ]
 
+    user_index = next(
+        (index for (index, d) in enumerate(formatted_leaderboard) if d["name"] == current_user.name), 
+        None
+    )
+
+    rank = (user_index + 1) if user_index is not None else None
+    
     return jsonify({
         "success": True,
         "group_name": group_name,
-        "leaderboard": formatted_leaderboard
+        "leaderboard": formatted_leaderboard,
+        "rank" : f'#{rank}'
     }), 200
 
 @pomodoro_bp.route('/api/toggle_activity', methods=['POST'])

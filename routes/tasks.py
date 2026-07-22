@@ -1,5 +1,5 @@
 import html
-from datetime import datetime
+from datetime import datetime, date
 
 from flask import Blueprint, jsonify, request, url_for
 from flask_login import current_user, login_required
@@ -20,9 +20,31 @@ def get_tasks():
         .all()
     )
 
+    tasks = [task.to_dict() for task in user_tasks]
+    today = date.today()
+    pending = 0
+    num_overdue = 0
+
+    for task in user_tasks:
+        if task.due_date and task.due_date < today and not task.is_complete:
+            num_overdue += 1
+
+        if not task.is_complete:
+            pending += 1
+
+    total_tasks = len(tasks)
+
+    if total_tasks == 0:
+        completion_rate = 0
+    else:
+        completion_rate = round(((total_tasks - pending) / total_tasks) * 100, 1)
+        print(round(((total_tasks - pending) / total_tasks) * 100, 1))
     return jsonify({
         "success": True,
-        "tasks": [task.to_dict() for task in user_tasks]
+        "tasks": tasks,
+        "pending": pending,
+        "num_overdue": num_overdue,
+        "completion_rate": completion_rate
     }), 200
 
 @tasks_bp.route('/api/add_task', methods=['POST'])

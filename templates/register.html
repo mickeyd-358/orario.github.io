@@ -6,8 +6,6 @@ Create an account
 {% block content %}
     <div class="wrapper">
         <h1 class="title">Sign Up</h1>
-        <div id="error-message" class="error"></div>
-        <div id="success-message" class="success"></div>
         <form id="register-form" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="input-box">

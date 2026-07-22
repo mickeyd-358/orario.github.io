@@ -54,13 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="background-color: #c0c0c0"><strong>#${index + 1}🥈</strong></td>
                     <td style="background-color: #c0c0c0">${user.name}</td>
                     <td style="background-color: #c0c0c0">${formatTime(user.total_minutes)}${statusDot}</td>
-                `;
-                } else if (index + 1 === data.leaderboard.length) {
-                    row.innerHTML = `
-                    <td style="background-color: #695532"><strong>#${index + 1}: 1st loser</strong></td>
-                    <td style="background-color: #695532">${user.name}</td>
-                    <td style="background-color: #695532">${formatTime(user.total_minutes)}${statusDot}</td>
-                `;                    
+                `;                  
                 } else {
                 row.innerHTML = `
                     <td><strong>#${index + 1}</strong></td>

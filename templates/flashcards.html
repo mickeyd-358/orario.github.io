@@ -6,8 +6,6 @@
 <div class="fc-dashboard-wrapper">
     <div class="decks-dashboard">
         <h3>📚 Your Study Decks</h3>
-        <div id="error-message" class="error"></div>
-        <div id="success-message" class="success"></div>
         {% if group_names %}
             <div class="deck-grid">
                 {% for name in group_names %}
@@ -70,7 +68,7 @@
                 <output style="font-weight: bold; margin-left: 10px;">5</output>
             </div>
 
-            <button type="submit" class="fc-btn fc-btn-primary">Generate & Save</button>
+            <button type="submit" id="loadButton" class="fc-btn fc-btn-primary">Generate & Save</button>
         </form>
     </details>
 
@@ -124,6 +122,17 @@
         <p style="text-align: center; color: #ef4444; margin-top: 20px;">No cards found inside this group track.</p>
     {% endif %}
 
+</div>
+
+<div class="loader-container" id="loader">
+    <div class="loader-box">
+        <h2>Generating Flashcards...</h2>
+        <p>This may take a few moments.</p>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
 </div>
 
 <script>

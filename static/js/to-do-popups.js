@@ -146,8 +146,43 @@ function checkReminders() {
         });
 }
 
+// Function to fetch how many of the user's flashcards are overdue
+function displayTaskStatistics() {
+    fetch('/api/get_tasks')
+        .then(res => res.json())
+        .then(data => {
+            const overdue = document.getElementById('overdue-num');
+            const pending = document.getElementById('pending-num');
+            const compRate = document.getElementById('completion-rate');
+
+            overdue.innerText = data.num_overdue;
+            pending.innerText = data.pending;
+            compRate.innerText = data.completion_rate + '%';
+            document.getElementById("completion-bar").style.width = `${data.completion_rate}%`;
+        })
+}
+
+function displayGroupRank() {
+    fetch('/api/leaderboard_data')
+        .then(res => res.json())
+        .then(data => {
+            const position = document.getElementById('leaderboard-rank');
+            const group = document.getElementById('group-name');
+
+            position.innerText = data.rank;
+            group.innerText = 'Rank today in ' + data.group_name;
+
+            if (data.rank === null) {
+                position.innerText = '--';
+                group.innerText = 'Join a group to get a rank!';
+            }
+        })
+}
+
 // Initialisations
 document.addEventListener('DOMContentLoaded', () => {
     requestNotificationPermission();
-    setInterval(checkReminders, 60000);
+    displayTaskStatistics();
+    displayGroupRank();
+    setInterval(checkReminders, 3600000);
 });

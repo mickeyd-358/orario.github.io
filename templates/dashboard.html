@@ -5,8 +5,6 @@
 <div class="dashboard-wrapper">
     <header class="dashboard-header">
         <h1>Welcome, {{ name }}!</h1>
-        <div id="error-message" class="error"></div>
-        <div id="success-message" class="success"></div>
     </header>
     <main class="widget-container">
         <div class="side-panel-column">
@@ -82,6 +80,78 @@
                     </tbody>
             </table>
             <a href="{{ url_for('dashboard', month=current_month, year=current_year) }}" class="btn">Today</a>
+
+        </section>
+
+        <section class="widget pomodoro">
+            <h1>Study statistics</h1>
+            <div id="pomodoro-info">
+            <div class="stats-container">
+
+                <div class="stat-card pending-card">
+                    <div class="stat-icon">
+                        <i class="bx bx-time-five"></i>
+                    </div>
+
+                    <div class="stat-number" id="pending-num">0</div>
+                    <div class="stat-label">Pending Tasks</div>
+                </div>
+
+                <div class="stat-card overdue-card">
+                    <div class="stat-icon">
+                        <i class="bx bx-alarm-exclamation"></i>
+                    </div>
+
+                    <div class="stat-number" id="overdue-num">0</div>
+                    <div class="stat-label">Overdue Tasks</div>
+                </div>
+
+                <div class="stat-card completion-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-line-chart'></i>
+                    </div>
+
+
+                    <div class="stat-number" id="completion-rate">0%</div>
+                    <div class="stat-label">Completion Rate</div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="completion-bar"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card leaderboard-card">
+                    <div class="stat-icon">
+                        <i class='bx bx-trophy'></i>
+                    </div>
+
+                    <div class="stat-number" id="leaderboard-rank">--</div>
+                    <div class="stat-label" id="group-name">group</div>
+                </div>
+
+            </div>
+
+            <div class="streak-widget">
+
+                <div class="streak-badge">STUDY STREAK</div>
+                <div class="fire-container">
+                    <div class="flame outer"></div>
+                    <div class="flame inner"></div>
+                    <div class="flame core"></div>
+                </div>
+                <div id="streak-length">
+                    <div id="streak-counter">0</div>
+                    <div class="streak-title">
+                        Day Streak
+                    </div>
+                    <div class="streak-subtitle" id="streak-subtitle">
+                        Keep the momentum going!
+                    </div>
+                </div>
+
+            </div>
+
+            </div>
         </section>
 
         <section class="widget to-do">
@@ -109,30 +179,30 @@
                 <tbody>
                     {% if not tasks %}
                     <tr>
-                        <td colspan="7">No tasks found. Add a new task to get started!</td>
+                        <td colspan="7">You're all caught up! 🎉 Add a task to get started!</td>
                     </tr>
                     {% endif %}
                     {% for task in tasks %}
                     <tr>
                     
-                        <td><strong>{{ loop.index }}</strong></td>
+                        <td data-label="Priority"><strong>{{ loop.index }}</strong></td>
                     
-                        <td>{{ task.title }}</td>
+                        <td data-label="Title">{{ task.title }}</td>
                     
-                        <td>{{ task.description }}</td>
+                        <td data-label="Description">{{ task.description }}</td>
                     
-                        <td>{{ task.due_date.strftime('%d %b %Y') }}</td>
+                        <td data-label="Due date">{{ task.due_date.strftime('%d %b %Y') }}</td>
                     
-                        <td>
+                        <td data-label="Status">
                             <a id='button' class="{{ 'complete' if task.is_complete else 'incomplete' }}" onclick="toggleComplete({{ task.id }}, {{ 'true' if task.is_complete else 'false' }})">
                                 {{ 'Complete ✅' if task.is_complete else 'Incomplete ▢' }}
                             </a>
                         </td>
-                        <td>
+                        <td data-label="Reminder">
                             {{ 'Yes' if task.reminder else 'No' }}
                         </td>
                     
-                        <td class="task-actions">
+                        <td data-label="Actions" class="task-actions">
 
                             <button class='task-button' onclick='openEditPopup(
                                 {{ task.id }},
@@ -157,26 +227,6 @@
             </table>    
         </section>
 
-        <section class="widget pomodoro">
-            <h1>Study stats</h1>
-            <div id="pomodoro-info">
-                <div id="time-left">
-                    <h1>Timer:</h1>
-                    <p>Feature coming soon!</p>
-                </div>
-
-                <div id="top-3-leaderboard">
-                    <h1>Top 3 today</h1>
-                    <p>Feature coming soon!</p>
-                </div>
-
-                <div id="streak-length">
-                    <div id="streak-counter"></div>
-
-                </div>
-            </div>
-        </section>
-
     </main>
 </div>
 
@@ -191,8 +241,6 @@
     <div class="popup">
         <button class="close-btn" onclick="closeAddPopup()">&times;</button>
         <h2>Add a task</h2>
-        <div id="error-message" class="error"></div>
-        <div id="success-message" class="success"></div>
         <form id="add-task-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="text" name="title" id="title" placeholder="Title" required>
@@ -271,4 +319,5 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="../static/js/to-do-popups.js"></script>
 <script src="../static/js/pomodoro_timer.js"></script>
 <script src="../static/js/show_study_streak.js"></script>
+<script src="../static/js/live_leaderboard.js"></script>
 {% endblock %}

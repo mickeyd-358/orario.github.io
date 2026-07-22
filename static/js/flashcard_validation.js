@@ -1,18 +1,42 @@
-document.querySelector('#flashcard-form')?.addEventListener('submit', async (e) => {
+const loader = document.getElementById("loader");
+const progress = document.getElementById("progress");
+const button = document.getElementById("loadButton");
+
+document.querySelector("#flashcard-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    loader.classList.add("active");
+    button.disabled = true;
+    button.textContent = "Generating...";
 
-    const formElement = e.target;
-    const targetUrl = formElement.getAttribute('action') || '/generate-flashcards';
+    // Random increments for progress bar
+    let value = 0;
+    const interval = setInterval(() => {
+        if (value < 90) {
+            value += Math.random() * 8;
+            progress.style.width = value + "%";
+        }
+    }, 250);
 
-    // Call postForm helper using the exact string URL path
-    const result = await postForm(targetUrl, formElement);
+    const form = e.target;
 
-    if (!result) return;
+    const result = await postForm(form.getAttribute("action"), form);
 
-    if (!result.success) {
-        showError(result.error);
-    } else if (result.success && result.redirect) {
-        showSuccess(result.message);
-        setTimeout(() => { window.location.href = result.redirect; }, 700);
+    clearInterval(interval);
+
+    // Unsuccessful attempt to show loader
+    if (!result || !result.success) {
+        loader.classList.remove("active");
+        button.disabled = false;
+        button.textContent = "Generate & Save";
+        progress.style.width = "0%";
+        showError(result?.error || "Something went wrong.");
+        return;
     }
+
+    progress.style.width = "100%";
+    showSuccess(result.message);
+
+    setTimeout(() => {
+        window.location.href = result.redirect;
+    }, 400);
 });
